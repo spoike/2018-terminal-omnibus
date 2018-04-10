@@ -1,0 +1,238 @@
+<!doctype HTML>
+<html>
+  <head>
+    <title>Terminal Omnibus</title>
+    <style>
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'New Courier', monospace;
+  width: 100vw;
+  height: 100vh;
+  background-color: beige;
+  overflow: hidden;
+}
+.slide {
+  position: relative;
+  background-color: black;
+  color: white;
+  width: 90vw;
+  height: 90vh;
+  margin: 5vh 5vw;
+  border-radius: 2rem;
+  text-align: center;
+  transition: all 0.5s ease-out;
+}
+.cursor.cursor-blink {
+  animation: cursorblink 1.5s steps(1) 0s infinite;
+  background-color: transparent;
+  color: white;
+  border-radius: 3px;
+}
+.hide {
+  opacity: 0;
+}
+
+@keyframes cursorblink {
+  0% {
+    background-color: inherit;
+    color: inherit;
+  }
+  50% {
+    background-color: white;
+    color: black;
+  }
+}
+    </style>
+  </head>
+  <body>
+    <div class="slide">
+      <div class="lines hide">
+        <div class="line line-1">
+          <span class="text"></span><span class="cursor cursor-blink">@</span>
+        </div>
+        <div class="line line-2 hide">
+          <span class="text"></span><span class="cursor cursor-blink">@</span>
+        </div>
+        <div class="line line-3 hide">
+          <span class="text"></span><span class="cursor cursor-blink">@</span>
+        </div>
+      </div>
+    </div>
+    <div class="slide">
+    </div>
+    <div class="slide">
+    </div>
+  <script>
+
+function initSlides() {
+  let currentIndex = 0;
+
+  const slides = document.querySelectorAll('.slide');
+  const animations = new WeakMap();
+
+  slides.forEach((slide, index) => {
+    slide.dataset['page'] = index;
+    slide.style.setProperty('position', 'absolute');
+  });
+
+  function updateSlidePosition() {
+    slides.forEach((slide, index) => {
+      slide.style.setProperty('left', `${(index - currentIndex)*100}vw`);
+    });
+  }
+  updateSlidePosition();
+
+  return {
+    next() {
+      if (currentIndex >= slides.length - 1) {
+        currentIndex = slides.length - 1;
+      } else {
+        currentIndex += 1;
+      }
+      updateSlidePosition();
+    },
+    previous() {
+      if (currentIndex <= 0) {
+        currentIndex = 0;
+      } else {
+        currentIndex -= 1;
+      }
+      updateSlidePosition();
+    },
+    addAnimation(slideIndex, sequence) {
+      animations.set(slides[slideIndex], sequence.reverse());
+    },
+    progress: (queue) => {
+      const currentSlide = slides[currentIndex];
+      const sequence = animations.get(currentSlide);
+      console.log(currentSlide);
+      console.log(sequence);
+      if (sequence && sequence.length) {
+        const frames = sequence.pop();
+        frames.forEach(frame => {
+          queue.push(() => frame[0](currentSlide), frame[1]);
+        });
+      }
+    }
+  }
+}
+const slideHandler = initSlides();
+
+function EventQueue() {
+  this.events = [];
+  this.lastTimestamp = +(new Date());
+}
+
+EventQueue.prototype.push = function push(cb, millis) {
+  const timestamp = this.lastTimestamp + (millis || 0);
+  this.events.push({
+    timestamp,
+    cb
+  });
+}
+
+function findFirstEvent(now) {
+  return (element) => {
+    return element.timestamp <= now;
+  };
+}
+
+EventQueue.prototype.poll = function poll() {
+  this.lastTimestamp = +(new Date());
+  const nextEventIndex = this.events.findIndex(findFirstEvent(this.lastTimestamp));
+  if (nextEventIndex == -1) {
+    return null;
+  }
+
+  const nextEvent = this.events[nextEventIndex];
+  this.events.splice(nextEventIndex, 1);
+  return nextEvent.cb;
+}
+
+var queue = new EventQueue();
+
+function repeatedlyPollQueue() {
+  const cb = queue.poll();
+
+  if (cb) {
+    cb();
+  }
+
+  requestAnimationFrame(repeatedlyPollQueue);
+}
+repeatedlyPollQueue();
+
+document.addEventListener('keydown', (evt) => {
+  switch (evt.code) {
+    case 'ArrowRight':
+      console.log('progress to next slide');
+      slideHandler.next();
+      break;
+    case 'ArrowLeft':
+      console.log('progress to previous slide');
+      slideHandler.previous();
+      break;
+    case 'Space':
+      console.log('progress to next animation');
+      slideHandler.progress(queue);
+      break;
+    default:
+      break;
+  }
+});
+
+function setStyle(element, styles) {
+  Object.entries(styles).forEach((style) => {
+    element.style.setProperty(style[0], style[1]);
+  });
+}
+
+function createStyleKeyframe(selector, styles, millis = 0) {
+  return [
+    (slide) => {
+      const element = slide.querySelector(selector);
+      setStyle(element, styles);
+    }, millis
+  ];
+}
+
+function createTypingSequence(selector, text, offset = 0) {
+  const arr = [];
+  for (let i = 0; i < text.length; ++i) {
+    let frame = (slide) => {
+      const element = slide.querySelector(selector);
+      element.innerText = text.substring(0, i + 1);
+    };
+    arr.push([frame, (30 * i) + offset])
+  }
+  return arr;
+}
+
+slideHandler.addAnimation(0, [
+  [
+    createStyleKeyframe('.lines', {
+      position: 'absolute',
+      'font-size': '48px',
+      top: '0',
+      left: '0',
+      right: '0',
+    }),
+    createStyleKeyframe('.lines', {
+      opacity: '1.0',
+      top: '33.3vh',
+      transition: 'all 0.5s steps(6), opacity 0.4s ease-out'
+    }, 1),
+  ],
+  [
+    ...createTypingSequence('.line-1 .text', 'Mikael Brassman', 0),
+    createStyleKeyframe('.line-1 .cursor', { display: 'none' }, 500),
+    createStyleKeyframe('.line-2', { opacity: '1.0', 'font-size': '64px' }, 500),
+    ...createTypingSequence('.line-2 .text', 'Terminal Omnibus', 600),
+    createStyleKeyframe('.line-2 .cursor', { display: 'none' }, 1100),
+    createStyleKeyframe('.line-3', { opacity: '1.0', 'font-size': '64px' }, 1100),
+  ],
+]);
+  </script>
+  </body>
+</html>
