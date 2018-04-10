@@ -74,6 +74,11 @@ body {
 }
 .slide[data-image] {
   background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+.slide[data-image][data-imagesize=contain] {
+  background-size: contain;
 }
 .slide[data-fill] {
   width: 100vw;
@@ -102,6 +107,8 @@ body {
       <p>What is it good for?</p>
     </div>
     <div class="slide" data-image="./hacker-hacking.gif" data-fill data-source="https://giphy.com/gifs/YQitE4YNQNahy">
+    </div>
+    <div class="slide" data-image="./dogs-chores.gif" data-fill data-source="https://giphy.com/gifs/dog-chores-mowing-grass-xTiTnuhyBF54B852nK" data-imagesize="contain">
     </div>
   <script>
 
