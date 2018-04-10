@@ -32,6 +32,22 @@ body {
 .hide {
   opacity: 0;
 }
+.base16-color01 { color: #ab4642; } /* Red */
+.base16-color02 { color: #a1b56c; } /* Green */
+.base16-color03 { color: #f7ca88; } /* Yellow*/
+.base16-color04 { color: #7cafc2; } /* Blue */
+.base16-color05 { color: #ba8baf; } /* Magenta */
+.base16-color06 { color: #86c1b9; } /* Cyan */
+.base16-color07 { color: #d8d8d8; } /* White */
+.base16-color08 { color: #585858; } /* Bright_Black */
+.base16-color09 { color: #ab4642; } /* Bright_Red */
+.base16-color10 { color: #a1b56c; } /* Bright_Green */
+.base16-color11 { color: #f7ca88; } /* Bright_Yellow */
+.base16-color12 { color: #7cafc2; } /* Bright_Blue */
+.base16-color13 { color: #ba8baf; } /* Bright_Magenta */
+.base16-color14 { color: #86c1b9; } /* Bright_Cyan */
+.base16-color15 { color: #f8f8f8; } /* Bright_White */
+
 
 @keyframes cursorblink {
   0% {
@@ -43,15 +59,37 @@ body {
     color: black;
   }
 }
+
+.slide.flex {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.slide > h1 {
+  font-size: 72px;
+}
+.slide > p {
+  font-size: 64px;
+}
+.slide[data-image] {
+  background-size: cover;
+}
+.slide[data-fill] {
+  width: 100vw;
+  height: 100vh;
+  border-radius: 0;
+  margin: 0;
+}
     </style>
   </head>
   <body>
     <div class="slide">
-      <div class="lines hide">
+      <div class="lines hide base16-color07">
         <div class="line line-1">
           <span class="text"></span><span class="cursor cursor-blink">@</span>
         </div>
-        <div class="line line-2 hide">
+        <div class="line line-2 hide base16-color13">
           <span class="text"></span><span class="cursor cursor-blink">@</span>
         </div>
         <div class="line line-3 hide">
@@ -59,9 +97,11 @@ body {
         </div>
       </div>
     </div>
-    <div class="slide">
+    <div class="slide flex">
+      <h1>The Terminal</h1>
+      <p>What is it good for?</p>
     </div>
-    <div class="slide">
+    <div class="slide" data-image="./hacker-hacking.gif" data-fill>
     </div>
   <script>
 
@@ -74,6 +114,12 @@ function initSlides() {
   slides.forEach((slide, index) => {
     slide.dataset['page'] = index;
     slide.style.setProperty('position', 'absolute');
+
+    const src = slide.dataset['image'];
+    if (src) {
+      console.log('src', src);
+      slide.style.setProperty('background-image', `url(${src})`);
+    }
   });
 
   function updateSlidePosition() {
