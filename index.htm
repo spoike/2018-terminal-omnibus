@@ -104,6 +104,11 @@ body {
 .slide .notes.notes-open {
   top: 50%;
 }
+
+body {
+  transform: scale(1.0);
+  transition: transform 0.25s ease-out;
+}
     </style>
   </head>
   <body>
@@ -164,7 +169,7 @@ function initSlides() {
 
   function updateSlidePosition() {
     slides.forEach((slide, index) => {
-      slide.style.setProperty('left', `${(index - currentIndex)*100}vw`);
+      slide.style.setProperty('transform', `translate3d(${(index - currentIndex)*100}vw, 0, 0)`);
     });
   }
   updateSlidePosition();
@@ -210,6 +215,18 @@ function initSlides() {
       const notes = currentSlide.querySelector('.notes');
       if (notes) {
         notes.classList.toggle('notes-open');
+      }
+    },
+    toggleOverview() {
+      const bodyStyle = document.body.style;
+      const isZoomed = !!document.body.dataset['zoomed']
+      const transformValue = bodyStyle.getPropertyValue('transform');
+      if (!isZoomed) {
+        document.body.dataset['zoomed'] = true;
+        bodyStyle.setProperty('transform', `scale(${1/slides.length})`);
+      } else {
+        delete document.body.dataset['zoomed'];
+        bodyStyle.setProperty('transform', 'scale(1)');
       }
     }
   }
@@ -274,6 +291,9 @@ document.addEventListener('keydown', (evt) => {
       break;
     case 'KeyN':
       slideHandler.toggleNotes();
+      break;
+    case 'Escape':
+      slideHandler.toggleOverview();
       break;
     default:
       break;
