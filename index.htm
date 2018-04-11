@@ -22,6 +22,7 @@ body {
   border-radius: 2rem;
   text-align: center;
   transition: all 0.5s ease-out;
+  overflow: hidden;
 }
 .cursor.cursor-blink {
   animation: cursorblink 1.5s steps(1) 0s infinite;
@@ -86,10 +87,27 @@ body {
   border-radius: 0;
   margin: 0;
 }
+.slide .notes {
+  text-align: left;
+  font-size: 24px;
+  background-color: white;
+  color: black;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 1rem;
+  transition: all 0.25s ease-out;
+}
+
+.slide .notes.notes-open {
+  top: 50%;
+}
     </style>
   </head>
   <body>
-    <div class="slide">
+    <div class="slide" data-animationid="intro">
       <div class="lines hide base16-color07">
         <div class="line line-1">
           <span class="text"></span><span class="cursor cursor-blink">@</span>
@@ -100,6 +118,20 @@ body {
         <div class="line line-3 hide">
           <span class="text"></span><span class="cursor cursor-blink">@</span>
         </div>
+      </div>
+      <div class="notes">
+        <p>Introduction</p>
+        <p>
+          Purpose of this talk is to present you the various ways to use the
+          terminal. Since there is a lot to cover, we're going to make this
+          talk somewhat interactive.
+        </p>
+        <p>
+          This talk will be available for you to clone or read online so you can
+          explore some concepts that we didn't have time to cover. You may
+          come after the talk and I'll happily answer questions to the best
+          of my ability.
+        </p>
       </div>
     </div>
     <div class="slide flex">
@@ -115,10 +147,11 @@ body {
 function initSlides() {
   let currentIndex = 0;
 
-  const slides = document.querySelectorAll('.slide');
+  const slides = Array.from(document.querySelectorAll('.slide'));
   const animations = new WeakMap();
 
   slides.forEach((slide, index) => {
+    console.log(slide, slides);
     slide.dataset['page'] = index;
     slide.style.setProperty('position', 'absolute');
 
@@ -153,10 +186,14 @@ function initSlides() {
       }
       updateSlidePosition();
     },
-    addAnimation(slideIndex, sequence) {
-      animations.set(slides[slideIndex], sequence.reverse());
+    addAnimation(animationId, sequence) {
+      const slide = slides.find(slide => slide.dataset['animationid'] === animationId);
+      if (slide) {
+        console.log(animationId, slide);
+        animations.set(slide, sequence.reverse());
+      }
     },
-    progress: (queue) => {
+    progress(queue) {
       const currentSlide = slides[currentIndex];
       const sequence = animations.get(currentSlide);
       console.log(currentSlide);
@@ -166,6 +203,13 @@ function initSlides() {
         frames.forEach(frame => {
           queue.push(() => frame[0](currentSlide), frame[1]);
         });
+      }
+    },
+    toggleNotes() {
+      const currentSlide = slides[currentIndex];
+      const notes = currentSlide.querySelector('.notes');
+      if (notes) {
+        notes.classList.toggle('notes-open');
       }
     }
   }
@@ -217,18 +261,19 @@ function repeatedlyPollQueue() {
 repeatedlyPollQueue();
 
 document.addEventListener('keydown', (evt) => {
+  console.log(evt.code);
   switch (evt.code) {
     case 'ArrowRight':
-      console.log('progress to next slide');
       slideHandler.next();
       break;
     case 'ArrowLeft':
-      console.log('progress to previous slide');
       slideHandler.previous();
       break;
     case 'Space':
-      console.log('progress to next animation');
       slideHandler.progress(queue);
+      break;
+    case 'KeyN':
+      slideHandler.toggleNotes();
       break;
     default:
       break;
@@ -262,7 +307,7 @@ function createTypingSequence(selector, text, offset = 0) {
   return arr;
 }
 
-slideHandler.addAnimation(0, [
+slideHandler.addAnimation('intro', [
   [
     createStyleKeyframe('.lines', {
       position: 'absolute',
@@ -278,9 +323,9 @@ slideHandler.addAnimation(0, [
     }, 1),
   ],
   [
-    ...createTypingSequence('.line-1 .text', 'Mikael Brassman', 0),
+    ...createTypingSequence('.line-1 .text', 'Mikael Brassman\'s', 0),
     createStyleKeyframe('.line-1 .cursor', { display: 'none' }, 500),
-    createStyleKeyframe('.line-2', { opacity: '1.0', 'font-size': '64px' }, 500),
+    createStyleKeyframe('.line-2', { opacity: '1.0', 'font-size': '92px' }, 500),
     ...createTypingSequence('.line-2 .text', 'Terminal Omnibus', 600),
     createStyleKeyframe('.line-2 .cursor', { display: 'none' }, 1100),
     createStyleKeyframe('.line-3', { opacity: '1.0', 'font-size': '64px' }, 1100),
